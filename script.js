@@ -4,7 +4,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const floatingPanel = document.getElementById("floatingPanel");
   const sleepBtn = document.getElementById("sleepBtn");
   const displayMode = document.getElementById("displayMode");
-  let currentOpenDropdown = null;
 
   // Fetch JSON data
   fetch("phrases.json")
@@ -22,12 +21,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const header = document.createElement("div");
       header.classList.add("paragraph-header");
 
-      // Create dropdown buttons dynamically
+      // Create buttons dynamically
       Object.keys(section).forEach(category => {
         const btn = document.createElement("button");
         btn.classList.add("icon-btn");
         btn.innerText = "💡";
-        btn.title = category.charAt(0).toUpperCase() + category.slice(1);
         btn.dataset.dropdown = `${sectionKey}-${category}`;
         header.appendChild(btn);
 
@@ -46,7 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       const textarea = document.createElement("textarea");
-      textarea.placeholder = "Write your ideas here...";
+      textarea.placeholder = "Write here...";
       paragraph.appendChild(header);
       paragraph.appendChild(textarea);
       essayContainer.appendChild(paragraph);
@@ -56,84 +54,27 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function setupInteractions() {
-    const iconButtons = document.querySelectorAll(".icon-btn");
-    const dropdowns = document.querySelectorAll(".dropdown-container");
-
-    iconButtons.forEach(btn => {
-      btn.addEventListener("click", e => {
-        e.stopPropagation();
+    document.querySelectorAll(".icon-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
         const id = btn.dataset.dropdown;
         const dropdown = document.getElementById(id);
-
-        // Close previous dropdown if another is opened
-        if (currentOpenDropdown && currentOpenDropdown !== dropdown) {
-          closeDropdown(currentOpenDropdown);
-        }
-
-        if (dropdown.classList.contains("show")) {
-          closeDropdown(dropdown);
-          currentOpenDropdown = null;
-        } else {
-          openDropdown(dropdown);
-          currentOpenDropdown = dropdown;
-        }
+        document.querySelectorAll(".dropdown-container").forEach(dc => dc.classList.remove("show"));
+        dropdown.classList.toggle("show");
       });
     });
 
-    // Prevent closing when clicking inside dropdown
-    dropdowns.forEach(d => {
-      d.addEventListener("click", e => e.stopPropagation());
-    });
-
-    // Close dropdown on outside click or ESC
-    document.addEventListener("click", () => {
-      if (currentOpenDropdown) closeDropdown(currentOpenDropdown);
-      currentOpenDropdown = null;
-    });
-    document.addEventListener("keydown", e => {
-      if (e.key === "Escape" && currentOpenDropdown) {
-        closeDropdown(currentOpenDropdown);
-        currentOpenDropdown = null;
-      }
-    });
-
-    // Sync textarea to floating panel
     document.querySelectorAll("textarea").forEach(t => {
       t.addEventListener("input", updatePanel);
     });
 
-    // Floating panel sleep toggle
     sleepBtn.addEventListener("click", () => floatingPanel.classList.toggle("sleep"));
-
-    // Display mode toggle (per paragraph/full page)
     displayMode.addEventListener("change", () => {
       document.getElementById("essayContainer").classList.toggle("per-paragraph");
     });
   }
 
-  function openDropdown(dropdown) {
-    dropdown.style.display = "block";
-    dropdown.classList.add("show");
-    dropdown.animate([
-      { opacity: 0, transform: "translateY(-10px)" },
-      { opacity: 1, transform: "translateY(0)" }
-    ], { duration: 250, fill: "forwards", easing: "ease-out" });
-  }
-
-  function closeDropdown(dropdown) {
-    const anim = dropdown.animate([
-      { opacity: 1, transform: "translateY(0)" },
-      { opacity: 0, transform: "translateY(-10px)" }
-    ], { duration: 200, fill: "forwards", easing: "ease-in" });
-    anim.onfinish = () => dropdown.style.display = "none";
-    dropdown.classList.remove("show");
-  }
-
   function updatePanel() {
-    const content = Array.from(document.querySelectorAll("textarea"))
-      .map(t => t.value.trim())
-      .filter(v => v)
-      .join("\n\n");
+    const content = Array.from(document.querySelectorAll("textarea")).map(t => t.value).join("\n\n");
     panelContent.textContent = content;
   }
 });
