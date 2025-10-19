@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>INTUITY — Definitive Interactive Essay Generator</title>
+<link href="style.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <div class="card" role="application" aria-label="INTUITY Definitive">
+      <header>
+        <div style="display:flex;align-items:center;gap:12px">
+          <div class="logo">IN</div>
+          <div>
+            <h1>INTUITY</h1>
+            <div class="subtitle">Intuitive & Immersive · C2 Essay Generator</div>
+          </div>
+        </div>
+        <div class="header-right">
+          <div class="toggle-row small">
+            <div class="small">PER-PARAGRAPH</div>
+            <label class="toggle-switch" title="Toggle per-paragraph mode">
+              <input type="checkbox" id="modeToggle" aria-label="Per paragraph mode">
+              <span class="toggle-slider"></span>
+            </label>
+            <div class="small">FULL</div>
+          </div>
+        </div>
+      </header>
+
+      <div class="layout">
+        <main class="main">
+          <!-- Dynamic essay area populated by script -->
+          <div class="essay" id="essayArea"></div>
+
+          <!-- focus nav (shown in per-paragraph mode) -->
+          <div class="focus-nav" id="focusNav" aria-hidden="true">
+            <button class="pill" id="prevBtn">← Prev</button>
+            <div id="pillsContainer" style="display:flex;gap:8px"></div>
+            <button class="pill" id="nextBtn">Next →</button>
+          </div>
+        </main>
+
+        <!-- RIGHT: Live Preview -->
+        <aside class="preview" id="previewPane">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <h3>Live Preview</h3>
+              <div class="small">Updates as you assemble text</div>
+            </div>
+            <div style="text-align:right"><div class="small">C2 phrase library</div></div>
+          </div>
+
+          <div style="margin-top:12px" id="previewOutput" class="essay-output">(Your essay will appear here.)</div>
+
+          <div class="util">
+            <div class="small">Tip: click an icon, choose a phrase, then edit the textarea.</div>
+            <div style="display:flex;gap:8px">
+              <button class="icon-btn" id="copyBtn">Copy</button>
+              <button class="icon-btn" id="downloadBtn">Download .txt</button>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating draft panel -->
+  <div class="floating sleep" id="floatingPanel" aria-hidden="false">
+    <div class="panel-header" id="floatingHeader">
+      <h4>Draft</h4>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="small" id="autoLabel">Auto</div>
+        <button class="icon-btn" id="toggleFloating" title="Sleep / Wake">💤</button>
+      </div>
+    </div>
+    <div class="panel-content" id="floatingContent" contenteditable="true" spellcheck="false"></div>
+  </div>
+
+<script src="script.js"></script>
+</body>
+</html>
