@@ -1,0 +1,578 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>INTUITY — Definitive Interactive Essay Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#050505;
+  --glass: rgba(18,18,18,0.66);
+  --lime:#b7ff3a;
+  --muted:#9aa0a6;
+  --glass-border: rgba(255,255,255,0.03);
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:
+  radial-gradient(circle at 12% 8%, rgba(183,255,58,0.03), transparent 6%),
+  var(--bg); color:#eaf0e6;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+
+.container{max-width:1100px;margin:18px auto;padding:12px}
+.card{border-radius:14px;padding:12px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.006));border:1px solid var(--glass-border);box-shadow:0 14px 40px rgba(0,0,0,0.7)}
+header{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.logo{width:56px;height:56px;border-radius:12px;background:radial-gradient(circle at 30% 20%, rgba(183,255,58,0.12), transparent);display:flex;align-items:center;justify-content:center;color:var(--lime);font-weight:800;font-size:18px;border:1px solid rgba(183,255,58,0.08)}
+h1{margin:0;font-size:18px}
+.subtitle{font-size:12px;color:var(--muted);margin-top:2px}
+.header-right{margin-left:auto;display:flex;gap:10px;align-items:center}
+
+/* toggle */
+.toggle-row{display:flex;gap:8px;align-items:center}
+.toggle-switch{position:relative;width:46px;height:24px}
+.toggle-switch input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;top:0;left:0;right:0;bottom:0;border-radius:22px;background:#1f1f1f;border:1px solid rgba(255,255,255,0.02);box-shadow:inset 2px 2px 5px #000,inset -2px -2px 5px rgba(183,255,58,0.06);transition:.28s}
+.toggle-slider:before{content:"";position:absolute;height:20px;width:20px;left:2px;top:2px;background:#070707;border-radius:50%;box-shadow:2px 2px 5px #000,-2px -2px 5px rgba(183,255,58,0.05);transition:.28s}
+.toggle-switch input:checked + .toggle-slider:before{transform:translateX(22px)}
+
+/* layout */
+.layout{display:grid;grid-template-columns:1fr 420px;gap:12px}
+@media(max-width:920px){.layout{grid-template-columns:1fr}}
+.main{min-height:420px;padding-right:6px}
+
+/* essay sections */
+.essay{display:flex;flex-direction:column;gap:18px}
+.paragraph{background:var(--glass);border-radius:12px;padding:0;border:1px solid var(--glass-border);box-shadow:0 8px 20px rgba(0,0,0,0.55);overflow:hidden}
+.paragraph-header{display:flex;align-items:center;gap:10px;padding:10px 12px;background:linear-gradient(180deg, rgba(0,0,0,0.36), rgba(255,255,255,0.006))}
+.icon-btn{background:linear-gradient(180deg, rgba(0,0,0,0.36), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.02);border-radius:10px;padding:8px 10px;color:var(--lime);cursor:pointer;font-weight:600;box-shadow:0 6px 18px rgba(0,0,0,0.5)}
+.icon-btn.inactive{color:var(--muted)}
+.icon-btn:active{transform:translateY(1px)}
+.paragraph-body{padding:12px}
+.dropdown-container{display:none;margin-bottom:8px}
+.dropdown-container.show{display:block;animation:fadeSlide .26s ease}
+@keyframes fadeSlide{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.select{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.02);background:linear-gradient(180deg, rgba(0,0,0,0.36), rgba(255,255,255,0.01));color:#eaf6d6;font-size:14px}
+
+/* textarea */
+textarea{width:100%;min-height:88px;padding:12px;border-radius:10px;background:linear-gradient(180deg, rgba(0,0,0,0.45), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.02);color:#eaf6d6;font-size:14px;line-height:1.6;resize:vertical}
+textarea.glow{box-shadow:0 8px 34px rgba(183,255,58,0.12);transition:box-shadow .6s ease}
+
+/* preview pane */
+.preview{background:linear-gradient(180deg, rgba(10,10,10,0.74), rgba(255,255,255,0.01));border-radius:12px;padding:14px;border:1px solid rgba(183,255,58,0.08);min-height:260px}
+.preview h3{margin:0 0 8px 0;color:var(--muted);font-size:13px}
+.essay-output{color:#e8f9d0;line-height:1.6;white-space:pre-wrap}
+
+/* focus nav */
+.focus-nav{display:none;gap:8px;justify-content:center;margin:10px 0}
+.focus-nav.visible{display:flex}
+.pill{padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,0.02);background:linear-gradient(180deg, rgba(0,0,0,0.35), rgba(255,255,255,0.01));color:var(--muted);font-weight:600;cursor:pointer}
+.pill.active{background:linear-gradient(180deg, rgba(183,255,58,0.06), rgba(183,255,58,0.02));color:#041203}
+
+/* floating panel */
+.floating{position:fixed;right:20px;bottom:20px;width:380px;max-height:78%;background:linear-gradient(180deg, rgba(0,0,0,0.85), rgba(255,255,255,0.01));backdrop-filter:blur(10px);border-radius:18px;padding:8px;border:1px solid rgba(183,255,58,0.08);box-shadow:0 30px 70px rgba(0,0,0,0.6);z-index:1200;display:flex;flex-direction:column;transition:all .28s}
+.floating.sleep{width:60px;height:60px;border-radius:999px;padding:0;overflow:hidden}
+.panel-header{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;cursor:grab}
+.panel-header h4{margin:0;color:var(--muted)}
+.panel-content{padding:8px;overflow:auto;flex:1;background:transparent;color:#dfffc9;font-size:14px;line-height:1.6;border-radius:8px}
+.small{font-size:12px;color:var(--muted)}
+.util{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+
+/* responsive tweaks */
+@media(max-width:720px){
+  .floating{right:12px;bottom:12px;width:320px}
+  .panel-content{font-size:13px}
+}
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="card" role="application" aria-label="INTUITY Definitive">
+      <header>
+        <div style="display:flex;align-items:center;gap:12px">
+          <div class="logo">IN</div>
+          <div>
+            <h1>INTUITY</h1>
+            <div class="subtitle">Intuitive & Immersive · C2 Essay Generator · Majid Nashtai</div>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <div class="toggle-row small">
+            <div class="small">PER-PARAGRAPH</div>
+            <label class="toggle-switch" title="Toggle per-paragraph mode">
+              <input type="checkbox" id="modeToggle" aria-label="Per paragraph mode">
+              <span class="toggle-slider"></span>
+            </label>
+            <div class="small">FULL</div>
+          </div>
+        </div>
+      </header>
+
+      <div class="layout">
+        <main class="main">
+          <div class="essay" id="essayArea">
+            <!-- INTRO -->
+            <section class="paragraph" id="intro" data-index="0">
+              <div class="paragraph-header">
+                <button class="icon-btn" data-target="intro-background" title="Background">📖</button>
+                <button class="icon-btn" data-target="intro-aim" title="Aim">🎯</button>
+                <button class="icon-btn" data-target="intro-ideas" title="Ideas">💡</button>
+              </div>
+              <div class="paragraph-body">
+                <div class="dropdown-container" id="intro-background">
+                  <select class="select">
+                    <option value="">Choose background…</option>
+                    <option>History is often invoked as a teacher for future generations, revealing inconvenient truths that societies prefer to forget.</option>
+                    <option>Across centuries, recurring patterns of behaviour highlight systemic vulnerabilities and moral blind spots.</option>
+                    <option>Societies frequently overlook lessons embedded in past events, substituting narrative for accountability.</option>
+                    <option>Chronicles of the past shed light on the structural forces shaping contemporary dilemmas.</option>
+                    <option>Human experience often provides cautionary tales about the limits of technocratic optimism.</option>
+                    <option>Reflecting on historical precedents illustrates how power relations persist across eras.</option>
+                    <option>Events previously concealed now offer crucial insights into institutional continuity.</option>
+                    <option>Understanding prior mistakes can illuminate the mechanisms that reproduce injustice.</option>
+                  </select>
+                </div>
+
+                <div class="dropdown-container" id="intro-aim">
+                  <select class="select">
+                    <option value="">Choose aim…</option>
+                    <option>This essay investigates whether humanity truly learns from past mistakes or remains condemned to repeat them.</option>
+                    <option>The current analysis seeks to evaluate the relationship between memory and meaningful reform.</option>
+                    <option>This study critically examines whether commemoration translates into material change.</option>
+                    <option>The objective of this essay is to explore the conditions under which remembrance produces accountability.</option>
+                    <option>It is necessary to assess whether institutional mechanisms enable ethical progress.</option>
+                    <option>This discussion aims to highlight the tension between symbolic acts and policy reform.</option>
+                    <option>The essay attempts to determine whether historical awareness reliably prompts corrective action.</option>
+                    <option>This examination will explore the extent to which narrative honesty fosters reparative measures.</option>
+                  </select>
+                </div>
+
+                <div class="dropdown-container" id="intro-ideas">
+                  <select class="select">
+                    <option value="">Choose expansion…</option>
+                    <option>Humanity may repeat patterns despite awareness because entrenched incentives discourage change.</option>
+                    <option>Certain mistakes are doomed to recur absent structural reform and collective will.</option>
+                    <option>Lessons learned can alter future decisions if accompanied by institutional safeguards.</option>
+                    <option>Awareness of history does not always prevent errors when power dynamics remain unchanged.</option>
+                    <option>Cultural, social, and political factors mediate the translation of memory into action.</option>
+                    <option>Reflection on past errors may foster growth, provided that education foregrounds critical engagement.</option>
+                    <option>Evidence suggests mixed success in learning from the past; context matters greatly.</option>
+                    <option>The interplay of memory and ignorance ultimately shapes societal responses to crisis.</option>
+                  </select>
+                </div>
+
+                <textarea id="ta-intro">History is often invoked as a teacher for future generations, shedding light on events that have sometimes been concealed. This essay will investigate whether humanity truly learns from past mistakes or remains destined to repeat them.</textarea>
+              </div>
+            </section>
+
+            <!-- CLAIM 1 -->
+            <section class="paragraph" id="claim1" data-index="1">
+              <div class="paragraph-header">
+                <button class="icon-btn" data-target="c1-listing" title="Linking">📋</button>
+                <button class="icon-btn" data-target="c1-opinion" title="Opinion">💬</button>
+                <button class="icon-btn" data-target="c1-claim" title="Claim">📝</button>
+                <button class="icon-btn" data-target="c1-reason" title="Reason">⚡</button>
+                <button class="icon-btn" data-target="c1-example" title="Example">📌</button>
+                <button class="icon-btn" data-target="c1-result" title="Result">➡️</button>
+                <button class="icon-btn" data-target="c1-compare" title="Compare">🔗</button>
+                <button class="icon-btn" data-target="c1-contrast" title="Contrast">⚖️</button>
+              </div>
+              <div class="paragraph-body">
+                <div class="dropdown-container" id="c1-listing"><select class="select"><option value="">Choose…</option><option>Firstly,</option><option>To begin with,</option><option>At the outset,</option><option>Notably,</option><option>Importantly,</option><option>It is instructive to note that</option><option>Crucially,</option><option>Significantly,</option></select></div>
+
+                <div class="dropdown-container" id="c1-opinion"><select class="select"><option value="">Choose…</option><option>It can be argued that</option><option>Many assert that</option><option>Evidence suggests</option><option>Scholars maintain that</option><option>It appears that</option><option>Research indicates</option><option>Some believe that</option><option>Undoubtedly,</option></select></div>
+
+                <div class="dropdown-container" id="c1-claim"><select class="select"><option value="">Choose…</option><option>structural inequality persists across institutional domains.</option><option>bureaucratic inertia often shields existing power configurations.</option><option>institutional practices reproduce privilege in subtle yet durable ways.</option><option>administrative procedures can normalise exclusion under a façade of neutrality.</option><option>policy frameworks frequently privilege established interests over the marginalised.</option><option>organisational cultures may perpetuate patterns of discrimination.</option><option>formal rules sometimes conceal informal mechanisms of exclusion.</option><option>systemic bias endures despite ostensible commitments to equality.</option></select></div>
+
+                <div class="dropdown-container" id="c1-reason"><select class="select"><option value="">Choose…</option><option>, having been shaped by historical policy and entrenched networks,</option><option>, reinforced by economic incentives and administrative routines,</option><option>, owing to long-standing socio-economic stratification,</option><option>, sustained by unequal access to resources and influence,</option><option>, compounded by intergenerational disadvantage,</option><option>, rooted in centuries of discriminatory practice,</option><option>, embedded in institutional architecture,</option><option>, perpetuated through normative assumptions about merit,</option></select></div>
+
+                <div class="dropdown-container" id="c1-example"><select class="select"><option value="">Choose…</option><option>For instance, redlining and housing policy created entrenched neighbourhood inequalities.</option><option>For example, recruitment algorithms can unintentionally replicate bias.</option><option>Consider the long-term effects of exclusionary education funding.</option><option>Empirical studies show that legacy admissions disadvantage first-generation applicants.</option><option>Historical legislation often codified patterns that persist today.</option><option>Statistical evidence reveals marked disparities in employment outcomes.</option><option>Case studies demonstrate how administrative rules disadvantage particular groups.</option><option>Policy reviews indicate systemic blind spots that reinforce inequality.</option></select></div>
+
+                <div class="dropdown-container" id="c1-result"><select class="select"><option value="">Choose…</option><option>Consequently, superficial reforms fail to redress core inequities.</option><option>Therefore, substantive structural change is required to achieve justice.</option><option>As a result, disparities persist across successive generations.</option><option>Hence, only comprehensive policy coupled with participatory governance can effect lasting change.</option><option>Thus, piecemeal measures often leave the root causes untouched.</option><option>Accordingly, accountability mechanisms must accompany any reform.</option><option>Consequently, marginalised communities remain disproportionately affected.</option><option>In short, change that ignores underlying structures is likely to be cosmetic.</option></select></div>
+
+                <div class="dropdown-container" id="c1-compare"><select class="select"><option value="">Choose…</option><option>Similarly,</option><option>Likewise,</option><option>In the same way,</option><option>Correspondingly,</option><option>In comparison,</option><option>Analogously,</option><option>Equally,</option><option>Just as,</option></select></div>
+
+                <div class="dropdown-container" id="c1-contrast"><select class="select"><option value="">Choose…</option><option>However,</option><option>Nevertheless,</option><option>On the other hand,</option><option>Yet,</option><option>Conversely,</option><option>Despite this,</option><option>Although,</option><option>Whereas,</option></select></div>
+
+                <textarea id="ta-c1">Humanity often repeats errors despite historical evidence, largely due to entrenched social and cultural patterns.</textarea>
+              </div>
+            </section>
+
+            <!-- CLAIM 2 -->
+            <section class="paragraph" id="claim2" data-index="2">
+              <div class="paragraph-header">
+                <button class="icon-btn" data-target="c2-listing" title="Linking">📋</button>
+                <button class="icon-btn" data-target="c2-opinion" title="Opinion">💬</button>
+                <button class="icon-btn" data-target="c2-claim" title="Claim">📝</button>
+                <button class="icon-btn" data-target="c2-reason" title="Reason">⚡</button>
+                <button class="icon-btn" data-target="c2-example" title="Example">📌</button>
+                <button class="icon-btn" data-target="c2-result" title="Result">➡️</button>
+                <button class="icon-btn" data-target="c2-compare" title="Compare">🔗</button>
+                <button class="icon-btn" data-target="c2-contrast" title="Contrast">⚖️</button>
+              </div>
+              <div class="paragraph-body">
+                <div class="dropdown-container" id="c2-listing"><select class="select"><option value="">Choose…</option><option>Secondly,</option><option>Moreover,</option><option>Furthermore,</option><option>In addition,</option><option>Equally important,</option><option>Notwithstanding this,</option><option>Beyond institutional features,</option><option>Turning to cultural dynamics,</option></select></div>
+
+                <div class="dropdown-container" id="c2-opinion"><select class="select"><option value="">Choose…</option><option>It could be asserted that</option><option>Another view suggests that</option><option>Many scholars argue that</option><option>It is plausible to maintain that</option><option>Some contend that</option><option>There is reason to believe that</option><option>It remains evident that</option><option>One might claim that</option></select></div>
+
+                <div class="dropdown-container" id="c2-claim"><select class="select"><option value="">Choose…</option><option>selective historiography fosters cultural amnesia.</option><option>national myth-making obscures inconvenient truths.</option><option>commemorative practices can be both consolatory and evasive.</option><option>collective memory is often contested and politically constituted.</option><option>public narratives may prioritise cohesion over accountability.</option><option>official pedagogy sometimes sanitises the past for present comfort.</option><option>state-sponsored memory can marginalise alternative voices.</option><option>cultural narratives may naturalise historical injustices.</option></select></div>
+
+                <div class="dropdown-container" id="c2-reason"><select class="select"><option value="">Choose…</option><option>because key perspectives are suppressed</option><option>due to deliberate omission in curricula</option><option>as a consequence of political expediency</option><option>owing to media framing that simplifies events</option><option>considering entrenched power dynamics</option><option>given partisan interests in persuasion</option><option>in light of institutional reluctance</option><option>since official narratives often exclude minority voices</option></select></div>
+
+                <div class="dropdown-container" id="c2-example"><select class="select"><option value="">Choose…</option><option>Research into national curricula shows selective omissions on sensitive topics.</option><option>Media analysis reveals the persistence of sanitized portrayals of contentious events.</option><option>Ethnographic studies document the erasure of minority testimonies.</option><option>Archival evidence often uncovers suppressed accounts of abuse.</option><option>Commemorative monuments frequently omit culpable actors.</option><option>Policy reviews highlight gaps in critical historical engagement.</option><option>Survey data indicates divergent public memories across demographic groups.</option><option>Documentary research exposes institutional reluctance to confront past harms.</option></select></div>
+
+                <div class="dropdown-container" id="c2-result"><select class="select"><option value="">Choose…</option><option>This suggests that memory alone does not guarantee justice.</option><option>Such patterns indicate a preference for narrative cohesion over restitution.</option><option>Therefore, remembrance without reform risks being performative.</option><option>Consequently, public pedagogy must be reoriented towards truthfulness.</option><option>Hence, honest curricula are essential to democratic deliberation.</option><option>Thus, cultural reckoning requires both narrative honesty and institutional change.</option><option>In effect, symbolic recognition must be matched by material redress.</option><option>In short, memory must be transformed into accountable practice.</option></select></div>
+
+                <div class="dropdown-container" id="c2-compare"><select class="select"><option value="">Choose…</option><option>Similarly,</option><option>Likewise,</option><option>In the same way,</option><option>Correspondingly,</option><option>In comparison,</option><option>Analogously,</option><option>Equally,</option><option>By the same token,</option></select></div>
+
+                <div class="dropdown-container" id="c2-contrast"><select class="select"><option value="">Choose…</option><option>However,</option><option>Nevertheless,</option><option>On the other hand,</option><option>Yet,</option><option>Conversely,</option><option>Despite this,</option><option>Although,</option><option>That said,</option></select></div>
+
+                <textarea id="ta-c2">Decision-making is frequently influenced by political and psychological biases, which hinder the learning process from past mistakes.</textarea>
+              </div>
+            </section>
+
+            <!-- CLAIM 3 -->
+            <section class="paragraph" id="claim3" data-index="3">
+              <div class="paragraph-header">
+                <button class="icon-btn" data-target="c3-listing" title="Linking">📋</button>
+                <button class="icon-btn" data-target="c3-opinion" title="Opinion">💬</button>
+                <button class="icon-btn" data-target="c3-claim" title="Claim">📝</button>
+                <button class="icon-btn" data-target="c3-reason" title="Reason">⚡</button>
+                <button class="icon-btn" data-target="c3-example" title="Example">📌</button>
+                <button class="icon-btn" data-target="c3-result" title="Result">➡️</button>
+                <button class="icon-btn" data-target="c3-compare" title="Compare">🔗</button>
+                <button class="icon-btn" data-target="c3-contrast" title="Contrast">⚖️</button>
+              </div>
+              <div class="paragraph-body">
+                <div class="dropdown-container" id="c3-listing"><select class="select"><option value="">Choose…</option><option>Thirdly,</option><option>Nevertheless,</option><option>Notwithstanding these points,</option><option>That said,</option><option>Conversely,</option><option>Even so,</option><option>Importantly,</option><option>It must be conceded that</option></select></div>
+
+                <div class="dropdown-container" id="c3-opinion"><select class="select"><option value="">Choose…</option><option>Some contend that progress entails trade-offs.</option><option>It must be recognised that innovation can bring benefits.</option><option>Others point out that incremental gains are significant.</option><option>One should acknowledge the transformative potential of technology.</option><option>It is reasonable to accept that context matters.</option><option>Certain advances have demonstrable merit despite risks.</option><option>There remains evidence of meaningful improvement in many areas.</option><option>It cannot be denied that complexity is inherent.</option></select></div>
+
+                <div class="dropdown-container" id="c3-claim"><select class="select"><option value="">Choose…</option><option>progress inevitably entails trade-offs that complicate simplistic critiques.</option><option>innovation can yield transformative benefits even where risks exist.</option><option>policy responses may be slow, but incremental gains are nonetheless real.</option><option>ethical dilemmas often require negotiated, context-sensitive solutions.</option><option>technological solutions sometimes create new opportunities for inclusion.</option><option>market mechanisms can, if regulated, foster wider access to services.</option><option>public sentiment may favour pragmatic reform over radical overhaul.</option><option>some advances demonstrably improve material wellbeing despite ethical complexity.</option></select></div>
+
+                <div class="dropdown-container" id="c3-reason"><select class="select"><option value="">Choose…</option><option>because risks and benefits often co-exist</option><option>due to complex trade-offs between welfare and efficiency</option><option>as a result of urgent practical demands</option><option>owing to institutional constraints on rapid reform</option><option>considering unpredictable secondary effects</option><option>given varying distributional impacts</option><option>in light of competing policy priorities</option><option>since technological change outpaces regulation</option></select></div>
+
+                <div class="dropdown-container" id="c3-example"><select class="select"><option value="">Choose…</option><option>For instance, mobile banking expanded financial access for millions.</option><option>For example, vaccine development saved countless lives even amid ethical debate.</option><option>Consider how renewable technologies have reduced carbon intensity in many economies.</option><option>Empirical evidence shows targeted interventions can reduce harm without halting progress.</option><option>Case studies often reveal nuanced trade-offs between benefit and risk.</option><option>Historical episodes demonstrate the complex interplay of innovation and ethics.</option><option>Statistical analyses frequently show mixed outcomes requiring careful interpretation.</option><option>Comparative studies indicate governance shapes whether advances aid or harm publics.</option></select></div>
+
+                <div class="dropdown-container" id="c3-result"><select class="select"><option value="">Choose…</option><option>Hence, policy must balance innovation with robust ethical frameworks.</option><option>Thus, a measured approach is required to translate recognition into redress.</option><option>Therefore, safeguards and oversight should accompany deployment.</option><option>Accordingly, pragmatic regulation can preserve benefits while reducing costs.</option><option>In effect, incrementalism may be preferable where wholesale change is impracticable.</option><option>Consequently, deliberative governance remains crucial to equitable outcomes.</option><option>Ultimately, balancing values and utility is the central policy challenge.</option><option>In sum, nuance and restraint should guide reformist ambitions.</option></select></div>
+
+                <div class="dropdown-container" id="c3-compare"><select class="select"><option value="">Choose…</option><option>Similarly,</option><option>Likewise,</option><option>In the same way,</option><option>Correspondingly,</option><option>In comparison,</option><option>Analogously,</option><option>Equally,</option><option>By the same token,</option></select></div>
+
+                <div class="dropdown-container" id="c3-contrast"><select class="select"><option value="">Choose…</option><option>However,</option><option>Nevertheless,</option><option>On the other hand,</option><option>Yet,</option><option>Conversely,</option><option>Despite this,</option><option>Although,</option><option>That said,</option></select></div>
+
+                <textarea id="ta-c3">Even when aware of prior errors, societies often replicate them, highlighting the resilience of habitual behaviours and institutional inertia.</textarea>
+              </div>
+            </section>
+
+            <!-- CONCLUSION -->
+            <section class="paragraph" id="conclusion" data-index="4">
+              <div class="paragraph-header">
+                <button class="icon-btn" data-target="con-listing" title="Signal">🔔</button>
+                <button class="icon-btn" data-target="con-opinion" title="Opinion">💬</button>
+                <button class="icon-btn" data-target="con-final" title="Final">🌟</button>
+              </div>
+              <div class="paragraph-body">
+                <div class="dropdown-container" id="con-listing"><select class="select"><option value="">Choose…</option><option>In conclusion,</option><option>To sum up,</option><option>Ultimately,</option><option>Overall,</option><option>As has been demonstrated,</option><option>To summarize,</option><option>On balance,</option><option>In brief,</option></select></div>
+
+                <div class="dropdown-container" id="con-opinion"><select class="select"><option value="">Choose…</option><option>It is evident that memory without action cannot secure justice.</option><option>One may conclude that ethical foresight must accompany innovation.</option><option>It becomes clear that institutional reform is indispensable to meaningful progress.</option><option>We can reasonably infer that balanced policy is the pathway to durable change.</option><option>The evidence suggests that reflection, not acceleration, yields genuine advancement.</option><option>It follows that educational reform is central to cultivating civic responsibility.</option><option>This implies that symbolic acts must be paired with material remedies.</option><option>The argument therefore points to the necessity of systemic transformation.</option></select></div>
+
+                <div class="dropdown-container" id="con-final"><select class="select"><option value="">Choose…</option><option>Only by coupling memory with action can societies hope to break recurring cycles.</option><option>True progress depends on wisdom’s restraint rather than speed alone.</option><option>Sustained institutional courage across generations will determine our moral trajectory.</option><option>Hence, future policy must integrate ethical foresight with technological innovation.</option><option>Ultimately, the measure of progress is how we protect dignity, not merely efficiency.</option><option>Thus, the final task is to translate knowledge into accountable practice.</option><option>In time, disciplined remembrance can become the foundation for restorative justice.</option><option>Henceforward, collective action and honesty are prerequisites for meaningful reform.</option></select></div>
+
+                <textarea id="ta-conclusion">In conclusion, understanding the past is essential, yet learning from it requires conscious effort; failure to do so risks repeating mistakes indefinitely.</textarea>
+              </div>
+            </section>
+
+          </div>
+
+          <!-- focus nav (shown in per-paragraph mode) -->
+          <div class="focus-nav" id="focusNav">
+            <button class="pill" id="prevBtn">← Prev</button>
+            <div id="pillsContainer" style="display:flex;gap:8px"></div>
+            <button class="pill" id="nextBtn">Next →</button>
+          </div>
+
+        </main>
+
+        <!-- RIGHT: Live Preview -->
+        <aside class="preview" id="previewPane">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <h3>Live Preview</h3>
+              <div class="small">Updates as you type or insert phrases</div>
+            </div>
+            <div style="text-align:right">
+              <div class="small">C2 phrase library</div>
+            </div>
+          </div>
+
+          <div style="margin-top:12px" id="previewOutput" class="essay-output">(Your essay will appear here.)</div>
+
+          <div class="util">
+            <div class="small">Tip: click an icon to open a panel, then choose a phrase to insert it into the paragraph.</div>
+            <div style="display:flex;gap:8px"><button class="icon-btn" id="copyBtn">Copy</button><button class="icon-btn" id="downloadBtn">Download .txt</button></div>
+          </div>
+        </aside>
+      </div> <!-- layout -->
+    </div> <!-- card -->
+  </div> <!-- container -->
+
+  <!-- Floating draft panel -->
+  <div class="floating sleep" id="floatingPanel" aria-hidden="false">
+    <div class="panel-header" id="floatingHeader">
+      <h4>Draft</h4>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="small" id="autoLabel">Auto</div>
+        <button class="icon-btn" id="toggleFloating" title="Sleep / Wake">💤</button>
+      </div>
+    </div>
+    <div class="panel-content" id="floatingContent" contenteditable="true" spellcheck="false"></div>
+  </div>
+
+<script>
+// Helper selectors
+const modeToggle = document.getElementById('modeToggle');
+const essayContainer = document.getElementById('essayArea');
+const previewOutput = document.getElementById('previewOutput');
+const floatingPanel = document.getElementById('floatingPanel');
+const toggleFloating = document.getElementById('toggleFloating');
+const floatingContent = document.getElementById('floatingContent');
+const copyBtn = document.getElementById('copyBtn');
+const downloadBtn = document.getElementById('downloadBtn');
+const focusNav = document.getElementById('focusNav');
+const pillsContainer = document.getElementById('pillsContainer');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+
+const paragraphs = Array.from(document.querySelectorAll('.paragraph'));
+const textareas = {
+  intro: document.getElementById('ta-intro'),
+  c1: document.getElementById('ta-c1'),
+  c2: document.getElementById('ta-c2'),
+  c3: document.getElementById('ta-c3'),
+  conclusion: document.getElementById('ta-conclusion')
+};
+const order = ['intro','c1','c2','c3','conclusion'];
+
+// ---------- MODE TOGGLE (full <-> per-paragraph) ----------
+function applyMode(isPerParagraph){
+  const container = document.querySelector('.essay');
+  if(isPerParagraph){
+    container.parentElement.classList.add('per-paragraph');
+    // show focus nav
+    focusNav.classList.add('visible');
+    renderPills();
+    currentIndex = Math.max(0, currentIndex);
+    showOnly(currentIndex);
+  } else {
+    container.parentElement.classList.remove('per-paragraph');
+    focusNav.classList.remove('visible');
+    // show all
+    paragraphs.forEach(p => p.style.display='flex');
+  }
+}
+modeToggle.addEventListener('change', e => {
+  applyMode(e.target.checked);
+});
+
+// ---------- FOCUS NAV ----------
+let currentIndex = 0;
+function renderPills(){
+  pillsContainer.innerHTML = '';
+  order.forEach((id, idx)=>{
+    const btn = document.createElement('button');
+    btn.className = 'pill' + (idx===currentIndex ? ' active' : '');
+    btn.textContent = id === 'intro' ? 'Intro' : (id === 'conclusion' ? 'Conclusion' : 'Claim ' + (idx));
+    btn.addEventListener('click', ()=>{ currentIndex = idx; showOnly(idx); updateActivePill(); });
+    pillsContainer.appendChild(btn);
+  });
+}
+function updateActivePill(){ Array.from(pillsContainer.children).forEach((b,i)=> b.classList.toggle('active', i===currentIndex)); }
+function showOnly(idx){
+  paragraphs.forEach((p,i)=> p.style.display = (i===idx ? 'flex' : 'none'));
+}
+prevBtn.addEventListener('click', ()=>{ currentIndex = (currentIndex-1+paragraphs.length) % paragraphs.length; showOnly(currentIndex); updateActivePill(); });
+nextBtn.addEventListener('click', ()=>{ currentIndex = (currentIndex+1) % paragraphs.length; showOnly(currentIndex); updateActivePill(); });
+
+// ---------- ICON DROPDOWNS (one open at a time per paragraph) ----------
+document.querySelectorAll('.icon-btn').forEach(btn=>{
+  btn.addEventListener('click', e=>{
+    const targetId = btn.getAttribute('data-target');
+    const paragraph = btn.closest('.paragraph');
+    // close other dropdowns in that paragraph
+    paragraph.querySelectorAll('.dropdown-container').forEach(dc => {
+      if(dc.id !== targetId) dc.classList.remove('show');
+    });
+    // toggle the chosen one
+    const target = document.getElementById(targetId);
+    if(!target) return;
+    target.classList.toggle('show');
+    // stop propagation so document click won't close it immediately
+    e.stopPropagation();
+  });
+
+  // keyboard accessibility
+  btn.addEventListener('keydown', (ev) => { if(ev.key==='Enter' || ev.key===' ') { ev.preventDefault(); btn.click(); } });
+});
+
+// close dropdowns when clicking outside
+document.addEventListener('click', ()=>{
+  document.querySelectorAll('.dropdown-container.show').forEach(dc => dc.classList.remove('show'));
+});
+
+// ---------- SELECT insertion into textarea (smart insert) ----------
+function smartInsert(existing, fragment){
+  if(!existing || existing.trim()==='') return fragment.trim();
+  const trimmed = existing.trim();
+  const last = trimmed.slice(-1);
+  const frag = fragment.trim();
+  if(['.', '?', '!', '—', ':'].includes(last)) return trimmed + ' ' + frag;
+  if(frag.startsWith(',') || frag.startsWith(';') || frag.startsWith('.')) return trimmed + frag;
+  return trimmed + ' ' + frag;
+}
+
+// listen to all selects
+document.querySelectorAll('.dropdown-container select').forEach(sel=>{
+  sel.addEventListener('change', ()=>{
+    const parent = sel.closest('.paragraph');
+    const ta = parent.querySelector('textarea');
+    const val = sel.value;
+    if(!val) return;
+    ta.value = smartInsert(ta.value, val);
+    ta.classList.add('glow');
+    setTimeout(()=>ta.classList.remove('glow'),700);
+    updatePreview();
+    updateFloating();
+    // reset select to placeholder index 0
+    sel.selectedIndex = 0;
+    // close all dropdowns in same paragraph
+    parent.querySelectorAll('.dropdown-container').forEach(dc => dc.classList.remove('show'));
+  });
+});
+
+// ---------- LIVE PREVIEW ----------
+function updatePreview(){
+  const parts = [
+    textareas.intro.value.trim(),
+    textareas.c1.value.trim(),
+    textareas.c2.value.trim(),
+    textareas.c3.value.trim(),
+    textareas.conclusion.value.trim()
+  ].filter(Boolean);
+  previewOutput.textContent = parts.join('\n\n');
+}
+Object.values(textareas).forEach(ta => ta.addEventListener('input', ()=>{ updatePreview(); updateFloating(); }));
+
+// initial preview
+updatePreview();
+
+// ---------- FLOATING PANEL (sleep / expand, draggable, two-way sync) ----------
+toggleFloating.addEventListener('click', ()=>{
+  floatingPanel.classList.toggle('sleep');
+  toggleFloating.textContent = floatingPanel.classList.contains('sleep') ? '💤' : '📝';
+  // if waking, refresh content
+  if(!floatingPanel.classList.contains('sleep')) updateFloating();
+});
+
+let dragging=false, dx=0, dy=0;
+const floatingHeader = document.getElementById('floatingHeader');
+floatingHeader.addEventListener('mousedown', (e)=>{
+  if(floatingPanel.classList.contains('sleep')) return;
+  dragging = true;
+  dx = e.clientX - floatingPanel.offsetLeft;
+  dy = e.clientY - floatingPanel.offsetTop;
+});
+document.addEventListener('mousemove', (e)=>{
+  if(!dragging) return;
+  floatingPanel.style.left = Math.max(8, e.clientX - dx) + 'px';
+  floatingPanel.style.top = Math.max(8, e.clientY - dy) + 'px';
+});
+document.addEventListener('mouseup', ()=> dragging=false);
+
+// build content for floating panel
+function updateFloating(){
+  const lines = [];
+  lines.push('[INTRO]');
+  lines.push(textareas.intro.value.trim());
+  lines.push('');
+  lines.push('[CLAIM1]');
+  lines.push(textareas.c1.value.trim());
+  lines.push('');
+  lines.push('[CLAIM2]');
+  lines.push(textareas.c2.value.trim());
+  lines.push('');
+  lines.push('[CLAIM3]');
+  lines.push(textareas.c3.value.trim());
+  lines.push('');
+  lines.push('[CONCLUSION]');
+  lines.push(textareas.conclusion.value.trim());
+  floatingContent.innerText = lines.join('\n');
+}
+
+// parse floating content back into textareas (on input)
+let floatingTypingTimer;
+floatingContent.addEventListener('input', ()=>{
+  // debounce heavy parsing slightly
+  clearTimeout(floatingTypingTimer);
+  floatingTypingTimer = setTimeout(()=>{
+    const raw = floatingContent.innerText;
+    // split by markers
+    // pattern: [SECTION]\ncontent...
+    const parts = raw.split(/\n?\[([A-Z0-9]+)\]\n?/).filter(Boolean);
+    // parts array like: 'INTRO', 'text', 'CLAIM1', 'text', ...
+    for(let i=0;i<parts.length;i+=2){
+      const key = parts[i].trim();
+      const value = (parts[i+1] || '').trim();
+      if(!key) continue;
+      if(key==='INTRO') textareas.intro.value = value;
+      else if(key==='CLAIM1') textareas.c1.value = value;
+      else if(key==='CLAIM2') textareas.c2.value = value;
+      else if(key==='CLAIM3') textareas.c3.value = value;
+      else if(key==='CONCLUSION') textareas.conclusion.value = value;
+    }
+    updatePreview();
+  }, 250);
+});
+
+// initialize floating with live content
+updateFloating();
+
+// collapse floating on Escape
+document.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ if(!floatingPanel.classList.contains('sleep')){ floatingPanel.classList.add('sleep'); toggleFloating.textContent='💤'; } } });
+
+// ---------- COPY & DOWNLOAD ----------
+copyBtn.addEventListener('click', async ()=>{
+  const text = previewOutput.textContent;
+  if(!text.trim()) return alert('Nothing to copy.');
+  try{ await navigator.clipboard.writeText(text); alert('Copied to clipboard ✓'); } catch(e){ prompt('Copy the essay:', text); }
+});
+downloadBtn.addEventListener('click', ()=>{
+  const text = previewOutput.textContent;
+  if(!text.trim()) return alert('Nothing to download.');
+  const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'intuity_essay.txt'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+});
+
+// ---------- small UX helpers ----------
+function closeAllDropdowns(){ document.querySelectorAll('.dropdown-container.show').forEach(dc=>dc.classList.remove('show')); }
+document.addEventListener('click', (e)=>{
+  // clicking outside dropdowns closes them
+  if(!e.target.closest('.paragraph')) closeAllDropdowns();
+});
+
+// Initialize per-paragraph mode if desired (default: full)
+modeToggle.checked = false;
+applyMode(false);
+
+// small accessibility: when user uses keyboard to open selects, the select handles insertion itself
+// Done: selects are native <select> elements; change handler inserts phrase into textarea (already wired above).
+
+// make paragraphs array matched order for focus nav
+renderPillsIfNeeded = () => {
+  // nothing else here but ensure UI consistent
+};
+renderPillsIfNeeded();
+
+</script>
+</body>
+</html>
